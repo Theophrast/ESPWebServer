@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+
+  <title>ESP8266 Server</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      color: #212121;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .topnav {
+      overflow: hidden;
+      background-color: #344659;
+    }
+
+    .topnav title {
+      float: left;
+      display: block;
+      color: #F6696D;
+      text-align: center;
+      padding: 14px 120px 14px 32px;
+      text-decoration: none;
+    }
+
+    .content {
+      background-color: #e6eaf1;
+      padding: 10px 32px 32px 32px;
+    }
+
+    .content h2 {
+      color: #F6696D;
+    }
+
+    .content h4 {
+      color: #F6696D;
+    }
+
+    table {
+      padding: 0px 120px 8px 32px;
+    }
+
+    hr {
+      color: #344659;
+      margin: 12px 0px 8px 0px;
+    }
+
+    td:first-child {
+      font-weight: bold;
+      padding: 0px 32px 0px 0px;
+      text-align: right;
+      color: #525252;
+      width: 280px;
+    }
+
+    .footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: #344659;
+      color: white;
+      text-align: center;
+    }
+
+    .footer msg {
+      float: center;
+      display: block;
+      color: #9FA1A6;
+      text-align: center;
+      padding: 14px 120px 14px 32px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topnav">
+    <title>ESP-8266 server</title>
+  </div>
+  <div class="content">
+    <h2>Status</h2>
+    <br>
+    <h4>Chip</h4>
+
+    <table>
+      <tr>
+        <td>Chip ID:</td>
+        <td id="chip_id"></td>
+      </tr>
+      <tr>
+        <td>Core Version:</td>
+        <td id="core_version"></td>
+      </tr>
+      <tr>
+        <td>SDK Version:</td>
+        <td id="sdk_version"></td>
+      </tr>
+    </table>
+    <br>
+    <table>
+      <tr>
+        <td>Flash Speed:</td>
+        <td id="flash_speed"></td>
+      </tr>
+      <tr>
+        <td>Flash Chip Size:</td>
+        <td id="flash_size"></td>
+      </tr>
+      <tr>
+        <td>Real Flash Size:</td>
+        <td id="real_flash_size"></td>
+      </tr>
+      <tr>
+    </table>
+
+    <table>
+      <tr>
+        <td>CPU Freq:</td>
+        <td id="cpu_freq"></td>
+      </tr>
+      <tr>
+        <td>Free Heap:</td>
+        <td id="free_heap"></td>
+      </tr>
+      <tr>
+        <td>Voltage:</td>
+        <td id="voltage"></td>
+      </tr>
+    </table>
+
+    <hr>
+    <h4>Wireless</h4>
+    <table>
+      <tr>
+        <td>SSID:</td>
+        <td id="ssid"></td>
+      </tr>
+      <tr>
+        <td>Channel:</td>
+        <td id="channel"></td>
+      </tr>
+      <tr>
+        <td>Signal:</td>
+        <td id="signal_strength"></td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td>MAC Address:</td>
+        <td id="mac_address"></td>
+      </tr>
+      <tr>
+        <td>IP Address:</td>
+        <td id="local_ip"></td>
+      </tr>
+      <tr>
+        <td>Subnet mask:</td>
+        <td id="subnet_mask"></td>
+      </tr>
+
+      <tr>
+        <td>Gateway:</td>
+        <td id="gateway"></td>
+      </tr>
+
+
+
+    </table>
+  </div>
+
+  <div class="footer">
+    <msg>Footer</msg>
+  </div>
+  <script>
+    var getJSON = function(url, callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'json';
+      xhr.onload = function() {
+        var status = xhr.status;
+        if (status === 200) {
+          callback(null, xhr.response);
+
+        } else {
+          callback(status, xhr.response);
+        }
+      };
+      xhr.send();
+    };
+
+    getJSON('http://esp_webserver.local:8080/server-status',
+      function(err, data) {
+        if (err !== null) {
+          document.getElementById("chip_id").innerHTML = "--";
+          document.getElementById("flash_size").innerHTML = "--";
+          document.getElementById("real_flash_size").innerHTML = "--";
+          document.getElementById("cpu_freq").innerHTML = "--";
+          document.getElementById("free_heap").innerHTML = "--";
+          document.getElementById("flash_speed").innerHTML = "--";
+          document.getElementById("voltage").innerHTML = "--";
+          document.getElementById("sdk_version").innerHTML = "--";
+          document.getElementById("core_version").innerHTML = "--";
+          document.getElementById("ssid").innerHTML = "--";
+          document.getElementById("channel").innerHTML = "--";
+          document.getElementById("signal_strength").innerHTML = "--";
+          document.getElementById("mac_address").innerHTML = "--";
+          document.getElementById("local_ip").innerHTML = "--";
+          document.getElementById("subnet_mask").innerHTML = "--";
+          document.getElementById("gateway").innerHTML = "--";
+          document.getElementById("ssid").innerHTML = "--";
+        } else {
+          document.getElementById("chip_id").innerHTML = data.chipId
+          document.getElementById("flash_size").innerHTML = (data.flashChipSize / 1024) + " KB"
+          document.getElementById("real_flash_size").innerHTML = (data.flashChipRealSize / 1024) + " KB"
+          document.getElementById("cpu_freq").innerHTML = data.cpuFreqMHz + " MHz"
+          document.getElementById("free_heap").innerHTML = Number(data.freeHeap / 1024).toFixed(2) + " KB"
+          document.getElementById("flash_speed").innerHTML = data.flashChipSpeed / 1000 / 1000 + " MHz"
+          document.getElementById("voltage").innerHTML = data.voltage / 1000 + " V"
+          document.getElementById("sdk_version").innerHTML = data.sdkVersion
+          document.getElementById("core_version").innerHTML = data.coreVersion
+
+          document.getElementById("ssid").innerHTML = data.ssid
+          document.getElementById("channel").innerHTML = data.channel + " (" + (2407 + data.channel * 5) + " MHz)"
+          document.getElementById("signal_strength").innerHTML = data.signalStrength + " dBm"
+          document.getElementById("mac_address").innerHTML = data.macAddress
+          document.getElementById("local_ip").innerHTML = data.localIP
+          document.getElementById("subnet_mask").innerHTML = data.subnetMask
+          document.getElementById("gateway").innerHTML = data.gatewayIP
+          document.getElementById("ssid").innerHTML = data.ssid
+
+
+        }
+      });
+
+  </script>
+</body>
+
+</html>
