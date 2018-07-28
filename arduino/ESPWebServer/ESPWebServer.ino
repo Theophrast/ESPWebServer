@@ -11,25 +11,17 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <SPI.h>
-#include "SdFat.h"
-
+#include <SD.h>
 ADC_MODE(ADC_VCC);
 #define DBG_OUTPUT_PORT Serial
 
 
-const char* ssid = "T***I";
-const char* password = "U******51";
+const char* ssid = "TH_WIFI";
+const char* password = "U*****51";
 const char* host = "esp_webserver";
 
 ESP8266WebServer httpserver(80);
 ESP8266WebServer statusserver(8080);
-
-
-#define USE_SDIO 0
-const uint8_t SD_CS_PIN = 16;
-
-SdFat SD;
-
 
 static bool hasSD = false;
 File uploadFile;
@@ -42,7 +34,7 @@ bool loadFromSdCard(String path) {
   if (path.endsWith("/")) path += "index.htm";
 
   if (path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
-  else if (path.endsWith(".htm") || path.endsWith(".html")) dataType = "text/html";
+  else if (path.endsWith(".htm")) dataType = "text/html";
   else if (path.endsWith(".css")) dataType = "text/css";
   else if (path.endsWith(".js")) dataType = "application/javascript";
   else if (path.endsWith(".png")) dataType = "image/png";
@@ -75,7 +67,7 @@ bool loadFromSdCard(String path) {
 
 
 bool loadStatusPageFromSdCard() {
-  String path="/config/html/index.htm";
+  String path="/config/html/";
   DBG_OUTPUT_PORT.println("--> loadFromSdCard() path: "+path);
   String dataType = "text/plain";
   if (path.endsWith("/")) path += "index.htm";
@@ -159,19 +151,18 @@ void handleNotFoundHTTP() {
   if (hasSD && loadFromSdCard(str_uri)) return;
 
   String msg = "<h1>404 Not found</h1><p>The requested URL was not found on this server</p>";
-  httpserver.send(404, "text/html", msg);
+  httpserver.send(404, "text/plain", msg);
   DBG_OUTPUT_PORT.print(msg);
 }
 
 void handleNotFoundStatus() {
-  String str_uri=statusserver.uri();
-  DBG_OUTPUT_PORT.println("handlenotFoundStatus() path: "+str_uri);
+  DBG_OUTPUT_PORT.println("handlenotFoundStatus()");
  
 
-  if ( loadStatusPageFromSdCard()) return;
+  if (hasSD && loadStatusPageFromSdCard()) return;
 
   String msg = "<h1>404 Not found</h1><p>The requested URL was not found on this server</p>";
-  statusserver.send(404, "text/html", msg);
+  statusserver.send(404, "text/plain", msg);
   DBG_OUTPUT_PORT.print(msg);
 }
 
@@ -213,13 +204,11 @@ void setup(void) {
   httpserver.begin();
   DBG_OUTPUT_PORT.println("HTTP server started");
 
- 
-  if (SD.begin(SD_CS_PIN, SD_SCK_MHZ(16))) {
+  if (SD.begin(SS)) {
     DBG_OUTPUT_PORT.println("SD Card initialized.");
-     hasSD = true;
-  }else{
-     SD.initErrorHalt();
+    hasSD = true;
   }
+
 
 }
 
